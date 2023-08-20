@@ -10,6 +10,4 @@ Here, you'll find:
 
 3. **Study Guides**: Comprehensive study guides to help you grasp complex concepts.
 
-4. **Project Ideas**: To apply the theoretical concepts, I'll also share some project ideas that you can work on.
-
 I hope these resources will not only help you ace your exams but also enhance your understanding and love for Data Science. Happy studying!
