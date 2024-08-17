@@ -1,434 +1,128 @@
-#include<iostream>
-#include<queue>
-#include<vector>
-#include<stack>
+#include <iostream>
+#include <list>
+#include <vector>
 using namespace std;
 
-class TreeNode
-{
-	int Data;
-	TreeNode* Left;
-	TreeNode* Right;
-
-	friend class BST;
-};
-
-class BST
-{
+// HashTable class using separate chaining
+class HashTable {
 private:
-	TreeNode* Root;
+    int tableSize; // Size of the hash table
+    vector<list<int>> table; // Vector of lists for separate chaining
 
-	void insertRecursive(TreeNode*& currNode, TreeNode* newNode)
-	{
-		if (currNode == nullptr)
-			currNode = newNode;
-		else if (newNode->Data < currNode->Data)
-			insertRecursive(currNode->Left, newNode);
-		else
-			insertRecursive(currNode->Right, newNode);
-	}
-
-	void inOrderRecursive(TreeNode* currNode)
-	{
-		if (currNode != nullptr)
-		{
-			inOrderRecursive(currNode->Left);
-			cout << currNode->Data << " ";
-			inOrderRecursive(currNode->Right);
-		}
-	}
-
-	void preOrderRecursive(TreeNode* currNode)
-	{
-		if (currNode != nullptr)
-		{
-			cout << currNode->Data << " ";
-			preOrderRecursive(currNode->Left);
-			preOrderRecursive(currNode->Right);
-		}
-	}
-
-	void postOrderRecursive(TreeNode* currNode)
-	{
-		if (currNode != nullptr)
-		{
-			postOrderRecursive(currNode->Left);
-			postOrderRecursive(currNode->Right);
-			cout << currNode->Data << " ";
-		}
-	}
-
-	void levelorderPrintHelper(TreeNode* currNode)
-	{
-		if (currNode == nullptr)
-			return;
-
-		queue<TreeNode*> q;
-		q.push(currNode);
-
-		while (!q.empty())
-		{
-			int levelSize = q.size();
-			for (int i = 0; i < levelSize; ++i)
-			{
-				TreeNode* node = q.front();
-				q.pop();
-				cout << node->Data << " ";
-
-				if (node->Left)
-					q.push(node->Left);
-				if (node->Right)
-					q.push(node->Right);
-			}
-
-			cout << endl;
-		}
-	}
-
-	bool searchRecursive(TreeNode* currNode, int Value)
-	{
-		if (currNode == nullptr)
-			return false;
-		else if (currNode->Data == Value)
-			return true;
-		else if (Value < currNode->Data)
-			searchRecursive(currNode->Left, Value);
-		else
-			searchRecursive(currNode->Right, Value);
-	}
-
-	int countNodesRecursive(TreeNode* currNode)
-	{
-		if (currNode == nullptr)
-			return 0;
-		return 1 + countNodesRecursive(currNode->Left) + countNodesRecursive(currNode->Right);
-	}
-
-	int leafCountRecursive(TreeNode* currNode)
-	{
-		if (currNode == nullptr)
-			return 0;
-		if (currNode->Left == nullptr && currNode->Right == nullptr)
-			return 1;
-		return leafCountRecursive(currNode->Left) + leafCountRecursive(currNode->Right);
-	}
-
-	void DeleteTree(TreeNode* node)
-	{
-		if (node != nullptr)
-		{
-			DeleteTree(node->Left);
-			DeleteTree(node->Right);
-			delete node;
-		}
-	}
-
-	void Ancestor(int Value, vector<TreeNode*>& Ancestors, TreeNode* CurrNode)
-	{
-		if (Value == CurrNode->Data)
-			return;
-		else if (Value < CurrNode->Data)
-		{
-			Ancestors.push_back(CurrNode);
-			Ancestor(Value, Ancestors, CurrNode->Left);
-		}
-		else if (Value > CurrNode->Data)
-		{
-			Ancestors.push_back(CurrNode);
-			Ancestor(Value, Ancestors, CurrNode->Right);
-		}
-	}
-
-	void findPatternRecursive1(TreeNode* currNode, int* seq, int seqSize, int& seqIndex, bool& Check)
-	{
-		if (currNode != nullptr)
-		{
-			findPatternRecursive1(currNode->Left, seq, seqSize, seqIndex, Check);
-
-			if (currNode->Data == seq[seqIndex])
-				seqIndex++;
-			else
-				seqIndex = 0;
-
-			if (seqIndex == seqSize)
-				Check = true;
-
-			findPatternRecursive1(currNode->Right, seq, seqSize, seqIndex, Check);
-		}
-	}
-
-	void collectData(TreeNode* currNode, vector<int>& TreeData)
-	{
-		if (currNode != nullptr)
-		{
-			collectData(currNode->Left, TreeData);
-			TreeData.push_back(currNode->Data);
-			collectData(currNode->Right, TreeData);
-		}
-	}
-
-	bool findPatternRecursive2(vector<int> TreeData, int TreeSize, int TreeIndex, int* seq, int seqSize, int seqIndex)
-	{
-		if (seqIndex == seqSize)
-			return true;
-		if (TreeIndex == TreeSize)
-			return false;
-
-		if (TreeData[TreeIndex] == seq[seqIndex])
-		{
-			TreeIndex++;
-			seqIndex++;
-			return findPatternRecursive2(TreeData, TreeData.size(), TreeIndex, seq, seqSize, seqIndex);
-		}
-		else
-		{
-			TreeIndex++;
-			seqIndex = 0;
-			return findPatternRecursive2(TreeData, TreeData.size(), TreeIndex, seq, seqSize, seqIndex);
-		}
-	}
+    // Hash function to map values to key
+    int hashFunction(int key) {
+        return key % tableSize;
+    }
 
 public:
-	BST()
-	{
-		Root = nullptr;
-	}
+    // Constructor to initialize the hash table
+    HashTable(int size) {
+        tableSize = size;
+        table.resize(tableSize);
+    }
 
-	void Insert(int Value)
-	{
-		TreeNode* newNode = new TreeNode;
-		newNode->Data = Value;
-		newNode->Left = newNode->Right = nullptr;
+    // Function to insert a key into the hash table
+    void insert(int key) {
+        int index = hashFunction(key); // Get the index for the key
+        table[index].push_back(key); // Insert the key into the appropriate list
+    }
 
-		insertRecursive(Root, newNode);
-	}
+    // Function to remove a key from the hash table
+    void remove(int key) {
+        int index = hashFunction(key); // Get the index for the key
 
-	void inOrder()
-	{
-		inOrderRecursive(Root);
-	}
+        // Traverse the list to find the key and remove it
+        for (auto it = table[index].begin(); it != table[index].end(); ++it) {
+            if (*it == key) {
+                table[index].erase(it);
+                return;
+            }
+        }
 
-	void preOrder()
-	{
-		preOrderRecursive(Root);
-	}
+        cout << "Key " << key << " not found!" << endl; // Key not found
+    }
 
-	void postOrder()
-	{
-		postOrderRecursive(Root);
-	}
+    // Function to search for a key in the hash table
+    bool search(int key) {
+        int index = hashFunction(key); // Get the index for the key
 
-	void levelorderPrint()
-	{
-		levelorderPrintHelper(Root);
-	}
+        // Traverse the list to find the key
+        for (auto it = table[index].begin(); it != table[index].end(); ++it) {
+            if (*it == key) {
+                return true; // Key found
+            }
+        }
 
-	void Search(int Value)
-	{
-		if (Root == nullptr)
-			cout << "TREE is Empty!" << endl;
-		else if (searchRecursive(Root, Value) == true)
-			cout << "Value " << Value << " Founded!" << endl;
-		else
-			cout << "Value " << Value << " not Found!" << endl;
-	}
+        return false; // Key not found
+    }
 
-	int countNodes()
-	{
-		return countNodesRecursive(Root);
-	}
-
-	int leafCount()
-	{
-		return leafCountRecursive(Root);
-	}
-
-	int Minimum()
-	{
-		if (Root == nullptr)
-		{
-			cout << "TREE is Empty!" << endl;
-			return -1;
-		}
-
-		TreeNode* currNode = Root;
-		while (currNode->Left != nullptr)
-		{
-			currNode = currNode->Left;
-		}
-
-		return currNode->Data;
-	}
-
-	int Maximum()
-	{
-		if (Root == nullptr)
-		{
-			cout << "TREE is Empty!" << endl;
-			return -1;
-		}
-
-		TreeNode* currNode = Root;
-		while (currNode->Right != nullptr)
-		{
-			currNode = currNode->Right;
-		}
-
-		return currNode->Data;
-	}
-
-	bool Remove(int Value)
-	{
-		TreeNode* currNode = Root, * Parent = nullptr;
-
-		while (currNode != nullptr && currNode->Data != Value)
-		{
-			Parent = currNode;
-			if (Value < currNode->Data)
-				currNode = currNode->Left;
-			else
-				currNode = currNode->Right;
-		}
-
-		if (currNode == nullptr)
-			return false;
-		else
-		{
-			if (currNode->Left != nullptr && currNode->Right != nullptr)
-			{
-				TreeNode* l = currNode->Left, * parentLeft = currNode;
-
-				while (l->Right != nullptr)
-				{
-					parentLeft = l;
-					l = l->Right;
-				}
-
-				currNode->Data = l->Data;
-				currNode = l;
-				Parent = parentLeft;
-			}
-
-			TreeNode* Child;
-
-			if (currNode->Left != nullptr)
-				Child = currNode->Left;
-			else
-				Child = currNode->Right;
-
-			if (currNode == Root)
-				Root = Child;
-			else
-			{
-				if (currNode == Parent->Left)
-					Parent->Left = Child;
-				else
-					Parent->Right = Child;
-			}
-		}
-
-		delete currNode;
-		currNode = nullptr;
-		return true;
-	}
-
-	~BST()
-	{
-		DeleteTree(Root);
-	}
-
-	void commonAncestor(int X, int Y)
-	{
-		vector<TreeNode*> X_Ancestors;
-		vector<TreeNode*> Y_Ancestors;
-
-		Ancestor(X, X_Ancestors, Root);
-		Ancestor(Y, Y_Ancestors, Root);
-
-		int size = min(X_Ancestors.size(), Y_Ancestors.size());
-		stack<TreeNode*> S;
-
-		for (int i = 0; i < size; i++)
-		{
-			if (X_Ancestors[i]->Data == Y_Ancestors[i]->Data)
-				S.push(X_Ancestors[i]);
-		}
-
-		size = S.size();
-
-		for (int i = 1; i <= size; i++)
-		{
-			TreeNode* Value = S.top();
-			cout << Value->Data << " ";
-			S.pop();
-		}
-	}
-
-	bool findpattern1(int* seq, int seqSize, int seqIndex)
-	{
-		bool Check = false;
-		findPatternRecursive1(Root, seq, seqSize, seqIndex, Check);
-		return Check;
-	}
-
-	bool findpattern2(int* seq, int seqSize, int seqIndex)
-	{
-		vector<int> TreeData;
-		collectData(Root, TreeData);
-
-		int TreeIndex = 0;
-		bool Check = findPatternRecursive2(TreeData, TreeData.size(), TreeIndex, seq, seqSize, seqIndex);
-		return Check;
-	}
-
-	void NodesSum(TreeNode* Curr, int& Sum)
-	{
-		if (Curr != nullptr)
-		{
-			Sum += Curr->Data;
-			NodesSum(Curr->Left, Sum);
-			NodesSum(Curr->Right, Sum);
-		}
-	}
-
-	void isDifferenceBST(TreeNode* Curr, bool& Check)
-	{
-		if (Curr != nullptr && Check == true)
-		{
-			int Left_Sum = 0;
-			NodesSum(Curr->Left, Left_Sum);
-			int Right_Sum = 0;
-			NodesSum(Curr->Right, Right_Sum);
-
-			if ((Left_Sum - Right_Sum) == Curr->Data)
-				Check = true;
-			else
-				Check = false;
-
-			isDifferenceBST(Curr->Left, Check);
-			isDifferenceBST(Curr->Right, Check);
-		}
-	}
-
-	void isDifferenceBST(bool& Check)
-	{
-		isDifferenceBST1(Root, Check)
-	}
+    // Function to display the contents of the hash table
+    void displayHashTable() {
+        for (int i = 0; i < tableSize; ++i) {
+            cout << "Index " << i << ":";
+            for (auto x : table[i]) {
+                cout << " --> " << x;
+            }
+            cout << endl;
+        }
+    }
 };
 
-void main()
-{
-	BST Tree;
-	Tree.Insert(18);
-	Tree.Insert(10);
-	Tree.Insert(5);
-	Tree.Insert(20);
-	Tree.Insert(10);
-	Tree.Insert(11);
-	Tree.Insert(6);
+// Main function to demonstrate the HashTable class
+int main() {
+    // Create a hash table of size 10
+    HashTable ht(10);
 
-	bool Check;
-	Tree.isDifferenceBST1(Check);
-	cout << Check;
+    // Insert keys into the hash table
+    ht.insert(10);
+    ht.insert(20);
+    ht.insert(30);
+    ht.insert(40);
+    ht.insert(50);
+    ht.insert(15);
+    ht.insert(25);
+    ht.insert(35);
 
+    // Display the hash table
+    cout << "Hash Table contents:" << endl;
+    ht.displayHashTable();
+    // Expected Output:
+    // Index 0: --> 10 --> 20 --> 30 --> 40 --> 50
+    // Index 1:
+    // Index 2:
+    // Index 3:
+    // Index 4:
+    // Index 5: --> 15 --> 25 --> 35
+    // Index 6:
+    // Index 7: 
+    // Index 8:
+    // Index 9:
+
+    // Search for keys in the hash table
+    cout << "Search for key 20: " << (ht.search(20) ? "Found" : "Not Found") << endl;
+    // Output: Search for key 20: Found
+    cout << "Search for key 45: " << (ht.search(45) ? "Found" : "Not Found") << endl;
+    // Output: Search for key 45: Not Found
+
+    // Remove keys from the hash table
+    ht.remove(20);
+    ht.remove(35);
+    ht.remove(45); // Key not in the hash table
+
+    // Display the hash table after removal
+    cout << "Hash Table contents after removal:" << endl;
+    ht.displayHashTable();
+    // Expected Output:
+    // Index 0: --> 10 --> 30 --> 40 --> 50
+    // Index 1:
+    // Index 2:
+    // Index 3:
+    // Index 4:
+    // Index 5: --> 15 --> 25
+    // Index 6:
+    // Index 7: 
+    // Index 8:
+    // Index 9:
+
+    return 0;
 }
